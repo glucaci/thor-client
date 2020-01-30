@@ -73,11 +73,11 @@ namespace Thor.Extensions.Http
         /// Starts processing a request on the server-side.
         /// </summary>
         [NonEvent]
-        public void Start(Guid activityId, string method, string uri)
+        public void Start(Guid activityId, Guid rootId, string method, string uri)
         {
             if (IsEnabled())
             {
-                Start(Application.Id, activityId, method, uri, null);
+                Start(Application.Id, activityId, rootId, method, uri, null);
             }
         }
 
@@ -98,10 +98,10 @@ namespace Thor.Extensions.Http
 
         [Event(_startEventId, Level = EventLevel.LogAlways, Message = "Request {2} {3}",
             Task = Tasks.Server, Opcode = EventOpcode.Start, Version = 1)]
-        private void Start(int applicationId, Guid activityId, string method, string uri,
+        private void Start(int applicationId, Guid activityId, Guid rootId, string method, string uri,
             string attachmentId)
         {
-            StartCore(_startEventId, applicationId, activityId, method, uri, attachmentId);
+            StartCore(_startEventId, applicationId, activityId, rootId, method, uri, attachmentId);
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace Thor.Extensions.Http
         #endregion
 
         [NonEvent]
-        private unsafe void StartCore(int eventId, int applicationId, Guid activityId,
+        private unsafe void StartCore(int eventId, int applicationId, Guid activityId, Guid rootId,
             string method, string uri, string attachmentId)
         {
             StringExtensions.SetToEmptyIfNull(ref method);
@@ -279,19 +279,21 @@ namespace Thor.Extensions.Http
 
             fixed (char* methodBytes = method, uriBytes = uri, attachmentIdBytes = attachmentId)
             {
-                const short dataCount = 5;
+                const short dataCount = 6;
                 EventData* data = stackalloc EventData[dataCount];
 
                 data[0].DataPointer = (IntPtr)(&applicationId);
                 data[0].Size = 4;
                 data[1].DataPointer = (IntPtr)(&activityId);
                 data[1].Size = 16;
-                data[2].DataPointer = (IntPtr)methodBytes;
-                data[2].Size = ((method.Length + 1) * 2);
-                data[3].DataPointer = (IntPtr)uriBytes;
-                data[3].Size = ((uri.Length + 1) * 2);
-                data[4].DataPointer = (IntPtr)attachmentIdBytes;
-                data[4].Size = ((attachmentId.Length + 1) * 2);
+                data[2].DataPointer = (IntPtr)(&rootId);
+                data[2].Size = 16;
+                data[3].DataPointer = (IntPtr)methodBytes;
+                data[3].Size = ((method.Length + 1) * 2);
+                data[4].DataPointer = (IntPtr)uriBytes;
+                data[4].Size = ((uri.Length + 1) * 2);
+                data[5].DataPointer = (IntPtr)attachmentIdBytes;
+                data[5].Size = ((attachmentId.Length + 1) * 2);
 
                 WriteEventCore(eventId, dataCount, data);
             }

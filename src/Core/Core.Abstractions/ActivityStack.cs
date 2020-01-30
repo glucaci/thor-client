@@ -10,6 +10,7 @@ namespace Thor.Core.Abstractions
     /// </summary>
     public static class ActivityStack
     {
+        private static readonly AsyncLocal<Guid> _rootId = new AsyncLocal<Guid>();
         private static readonly AsyncLocal<ActivityState> _callContext = new AsyncLocal<ActivityState>();
 
         private static ImmutableStack<Guid> Current
@@ -35,6 +36,15 @@ namespace Thor.Core.Abstractions
             {
                 return GetTopOrEmpty();
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the root activity identifier.
+        /// </summary>
+        public static Guid RootId
+        {
+            get => _rootId.Value;
+            set => _rootId.Value = value;
         }
 
         private static Guid GetTopOrEmpty()

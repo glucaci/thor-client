@@ -33,15 +33,18 @@ namespace Thor.Extensions.Http
         /// </summary>
         /// <param name="method">A HTTP method of a request.</param>
         /// <param name="uri">A HTTP uri of a request.</param>
-        /// <param name="relatedActivityId">
+        /// <param name="parentId">
         /// A related activity identifier to link activities across component or service 
         /// boundaries with a parent activity.
+        /// </param>
+        /// <param name="rootId">
+        /// A root activity identifier to link activities with root activity
         /// </param>
         /// <returns>A new instance of <see cref="ServerRequestActivity"/>.</returns>
         /// <remarks>
         /// This method is more or less for internal use. Use instead the <c>Thor.AspNetCore</c> package.
         /// </remarks>
-        public static ServerRequestActivity Create(string method, Uri uri, Guid? relatedActivityId)
+        public static ServerRequestActivity Create(string method, Uri uri, Guid? parentId, Guid? rootId)
         {
             if (string.IsNullOrWhiteSpace(method))
             {
@@ -59,15 +62,16 @@ namespace Thor.Extensions.Http
                 Log.OuterActivityNotAllowed(context.Id);
             }
 
-            if (relatedActivityId != null && relatedActivityId != Guid.Empty)
+            if (parentId.HasValue && parentId != Guid.Empty && rootId.HasValue && rootId != Guid.Empty)
             {
-                Log.BeginTransfer(relatedActivityId.Value);
-                Log.Start(context._activityId, method, uri.ToString());
-                Log.EndTransfer(context._activityId, relatedActivityId.Value);
+                ActivityStack.RootId = rootId.Value;
+                Log.BeginTransfer(parentId.Value);
+                Log.Start(context._activityId, rootId.Value,  method, uri.ToString());
+                Log.EndTransfer(context._activityId, parentId.Value);
             }
             else
             {
-                Log.Start(context._activityId, method, uri.ToString());
+                Log.Start(context._activityId, context._activityId, method, uri.ToString());
             }
 
             return context;

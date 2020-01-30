@@ -58,7 +58,7 @@ namespace Thor.Hosting.AspNetCore
             }
 
             ServerRequestActivity activity = ServerRequestActivity.Create(httpContext.Request.Method,
-                requestUri, httpContext.Request.GetActivityId());
+                requestUri, httpContext.GetActivityId(), httpContext.GetRootId());
 
             httpContext.Features.Set(activity);
         }

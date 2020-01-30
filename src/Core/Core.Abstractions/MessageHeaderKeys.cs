@@ -9,5 +9,10 @@
         /// Gets the header key for the activity identifier.
         /// </summary>
         public const string ActivityId = "Thor-ActivityId";
+
+        /// <summary>
+        /// Gets the header key for the root activity identifier.
+        /// </summary>
+        public const string RootId = "Thor-RootActivityId";
     }
 }
